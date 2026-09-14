@@ -1,7 +1,5 @@
 import { logger } from "./util/logger.js";
-import type { Source } from "./types.js";
-
-const SOURCES: Source[] = ["email", "notion", "linear", "calendar"];
+import { SOURCES, type Source } from "./types.js";
 
 async function main() {
   const [command, ...rest] = process.argv.slice(2);

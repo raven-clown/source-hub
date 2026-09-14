@@ -7,9 +7,13 @@
     "migrate": "tsx scripts/migrate.ts",
     "sync": "tsx src/cli.ts sync",
     "mcp": "tsx src/cli.ts mcp",
+    "mcp:debug": "mcp-debug run -- npx tsx src/cli.ts mcp",
     "api": "tsx src/cli.ts api",
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "scan:sast": "eslint .",
+    "scan:secrets": "secretlint \"**/*\"",
+    "scan:deps": "npm audit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
@@ -24,9 +28,15 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@secretlint/secretlint-rule-preset-recommend": "^13.0.5",
     "@types/node": "^22.10.2",
     "@types/pg": "^8.11.10",
+    "eslint": "^10.10.0",
+    "eslint-plugin-security": "^4.0.1",
+    "mcp-stdio-debug": "^1.8.2",
+    "secretlint": "^13.0.5",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.70.0"
   }
 }

@@ -6,10 +6,32 @@ function client(): Client {
   return new Client({ auth: env.NOTION_API_KEY });
 }
 
-function extractTitle(properties: Record<string, any>): string {
+interface NotionProperty {
+  type: string;
+  title?: { plain_text: string }[];
+}
+
+interface NotionPage {
+  id: string;
+  url?: string;
+  created_time: string;
+  last_edited_time: string;
+  properties?: Record<string, NotionProperty>;
+  parent?: unknown;
+  created_by?: { id: string };
+  last_edited_by?: { id: string };
+}
+
+interface NotionSearchResponse {
+  results: NotionPage[];
+  has_more: boolean;
+  next_cursor: string | null;
+}
+
+function extractTitle(properties: Record<string, NotionProperty>): string {
   for (const prop of Object.values(properties)) {
-    if (prop?.type === "title") {
-      return (prop.title as { plain_text: string }[]).map((t) => t.plain_text).join("") || "Untitled";
+    if (prop.type === "title" && prop.title) {
+      return prop.title.map((t) => t.plain_text).join("") || "Untitled";
     }
   }
   return "Untitled";
@@ -26,14 +48,14 @@ export const notionConnector: Connector = {
     let startCursor: string | undefined;
 
     outer: while (true) {
-      const res: any = await notion.search({
+      const res = (await notion.search({
         sort: { direction: "descending", timestamp: "last_edited_time" },
         filter: { property: "object", value: "page" },
         start_cursor: startCursor,
         page_size: 50,
-      });
+      })) as unknown as NotionSearchResponse;
 
-      for (const page of res.results as any[]) {
+      for (const page of res.results) {
         if (page.last_edited_time <= since) break outer;
         if (page.last_edited_time > newestSeen) newestSeen = page.last_edited_time;
 

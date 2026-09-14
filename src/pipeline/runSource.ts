@@ -6,9 +6,12 @@ import { getCursor, saveCursor } from "../db/repositories/syncCursors.js";
 import { startRun, finishRun } from "../db/repositories/pipelineRuns.js";
 import { env } from "../config/env.js";
 import { logger } from "../util/logger.js";
-import type { Source } from "../types.js";
+import { SOURCES, type Source } from "../types.js";
 
 export async function runSource(source: Source): Promise<void> {
+  if (!SOURCES.includes(source)) {
+    throw new Error(`invalid source: ${source}`);
+  }
   const connector = connectors[source];
   const cursor = await getCursor(source);
   const runId = await startRun(source);

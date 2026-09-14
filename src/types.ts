@@ -1,4 +1,5 @@
-export type Source = "email" | "notion" | "linear" | "calendar";
+export const SOURCES = ["email", "notion", "linear", "calendar"] as const;
+export type Source = (typeof SOURCES)[number];
 
 export type Category = "urgent_reply" | "fyi" | "billing" | "task" | "appointment" | "promo";
 
