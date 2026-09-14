@@ -1,14 +1,11 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { env } from "../config/env.js";
+import { getLlmProvider, type ToolSpec } from "../llm/index.js";
 import { queryItems, type ItemFilters, type ItemRow } from "../db/repositories/items.js";
 import { categories } from "../extraction/schema.js";
 
-const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-
-const queryTool: Anthropic.Tool = {
+const queryTool: ToolSpec = {
   name: "query_items",
   description: "Search the unified items database pulled from email, Notion, Linear and Google Calendar.",
-  input_schema: {
+  schema: {
     type: "object",
     properties: {
       sources: { type: "array", items: { type: "string", enum: ["email", "notion", "linear", "calendar"] } },
@@ -34,43 +31,19 @@ export interface AskResult {
 }
 
 export async function ask(question: string): Promise<AskResult> {
-  const messages: Anthropic.MessageParam[] = [{ role: "user", content: question }];
+  const provider = getLlmProvider();
   const seenItems = new Map<string, ItemRow>();
 
-  for (let turn = 0; turn < 4; turn++) {
-    const response = await anthropic.messages.create({
-      model: env.EXTRACTION_MODEL,
-      max_tokens: 1024,
-      system: `${SYSTEM_PROMPT}\nToday is ${new Date().toISOString()}.`,
-      tools: [queryTool],
-      messages,
-    });
-
-    const toolUses = response.content.filter(
-      (block): block is Anthropic.ToolUseBlock => block.type === "tool_use"
-    );
-
-    if (toolUses.length === 0) {
-      const text = response.content.find(
-        (block): block is Anthropic.TextBlock => block.type === "text"
-      );
-      return { answer: text?.text ?? "", items: [...seenItems.values()] };
-    }
-
-    messages.push({ role: "assistant", content: response.content });
-
-    const toolResults: Anthropic.ToolResultBlockParam[] = [];
-    for (const toolUse of toolUses) {
-      const rows = await queryItems(toolUse.input as ItemFilters);
+  const answer = await provider.runAgentLoop({
+    system: `${SYSTEM_PROMPT}\nToday is ${new Date().toISOString()}.`,
+    userMessage: question,
+    tool: queryTool,
+    runTool: async (input) => {
+      const rows = await queryItems(input as ItemFilters);
       for (const row of rows) seenItems.set(row.id, row);
-      toolResults.push({
-        type: "tool_result",
-        tool_use_id: toolUse.id,
-        content: JSON.stringify(rows),
-      });
-    }
-    messages.push({ role: "user", content: toolResults });
-  }
+      return rows;
+    },
+  });
 
-  return { answer: "Could not resolve an answer within the tool-call budget.", items: [...seenItems.values()] };
+  return { answer, items: [...seenItems.values()] };
 }

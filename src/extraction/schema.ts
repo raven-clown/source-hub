@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type Anthropic from "@anthropic-ai/sdk";
+import type { ToolSpec } from "../llm/types.js";
 
 export const categories = ["urgent_reply", "fyi", "billing", "task", "appointment", "promo"] as const;
 
@@ -15,10 +15,10 @@ export const extractedItemSchema = z.object({
   confidence: z.number().min(0).max(1),
 });
 
-export const extractionTool: Anthropic.Tool = {
+export const extractionTool: ToolSpec = {
   name: "record_extraction",
   description: "Record the structured extraction of a source item.",
-  input_schema: {
+  schema: {
     type: "object",
     properties: {
       senderName: { type: ["string", "null"], description: "Display name of the sender/creator/assignee" },
@@ -31,6 +31,6 @@ export const extractionTool: Anthropic.Tool = {
       eventAtType: { type: ["string", "null"], enum: ["deadline", "meeting", null] },
       confidence: { type: "number", minimum: 0, maximum: 1 },
     },
-    required: ["senderName", "senderIdentifier", "originOrg", "title", "summary", "category", "eventAt", "eventAtType", "confidence"] as string[],
+    required: ["senderName", "senderIdentifier", "originOrg", "title", "summary", "category", "eventAt", "eventAtType", "confidence"],
   },
 };

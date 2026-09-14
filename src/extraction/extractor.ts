@@ -1,9 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { env } from "../config/env.js";
+import { getLlmProvider } from "../llm/index.js";
 import { extractedItemSchema, extractionTool } from "./schema.js";
 import type { ExtractedItem, RawFetchedItem } from "../types.js";
-
-const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
 const SYSTEM_PROMPT = `You extract structured signal from a single item pulled from an email inbox, Notion, Linear, or Google Calendar.
 Write the summary yourself in your own words: capture what the item actually means and what (if anything) the recipient needs to do, don't just restate the title.
@@ -30,24 +27,12 @@ function sourceLabel(raw: RawFetchedItem): string {
 }
 
 export async function extractItem(raw: RawFetchedItem): Promise<ExtractedItem> {
-  const message = await anthropic.messages.create({
-    model: env.EXTRACTION_MODEL,
-    max_tokens: 1024,
+  const provider = getLlmProvider();
+  const input = await provider.extractStructured({
     system: SYSTEM_PROMPT,
-    tools: [extractionTool],
-    tool_choice: { type: "tool", name: extractionTool.name },
-    messages: [
-      {
-        role: "user",
-        content: `${sourceLabel(raw)}, created at ${raw.sourceCreatedAt}:\n\n${JSON.stringify(raw.payload, null, 2)}`,
-      },
-    ],
+    userContent: `${sourceLabel(raw)}, created at ${raw.sourceCreatedAt}:\n\n${JSON.stringify(raw.payload, null, 2)}`,
+    tool: extractionTool,
   });
 
-  const toolUse = message.content.find((block) => block.type === "tool_use");
-  if (!toolUse || toolUse.type !== "tool_use") {
-    throw new Error("extraction model did not return a tool_use block");
-  }
-
-  return extractedItemSchema.parse(toolUse.input);
+  return extractedItemSchema.parse(input);
 }
