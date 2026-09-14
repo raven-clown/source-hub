@@ -2,7 +2,9 @@ import { Client } from "@notionhq/client";
 import { env } from "../config/env.js";
 import type { Connector, RawFetchedItem } from "../types.js";
 
-const notion = new Client({ auth: env.NOTION_API_KEY });
+function client(): Client {
+  return new Client({ auth: env.NOTION_API_KEY });
+}
 
 function extractTitle(properties: Record<string, any>): string {
   for (const prop of Object.values(properties)) {
@@ -17,6 +19,7 @@ export const notionConnector: Connector = {
   source: "notion",
 
   async fetchSince(cursor) {
+    const notion = client();
     const since = (cursor.since as string) ?? new Date(0).toISOString();
     let newestSeen = since;
     const items: RawFetchedItem[] = [];

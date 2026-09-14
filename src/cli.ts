@@ -1,8 +1,3 @@
-import { runAll } from "./pipeline/runAll.js";
-import { runSource } from "./pipeline/runSource.js";
-import { startServer } from "./mcp-server/server.js";
-import { startApiServer } from "./api/server.js";
-import { pool } from "./db/client.js";
 import { logger } from "./util/logger.js";
 import type { Source } from "./types.js";
 
@@ -13,6 +8,10 @@ async function main() {
 
   switch (command) {
     case "sync": {
+      const { runAll } = await import("./pipeline/runAll.js");
+      const { runSource } = await import("./pipeline/runSource.js");
+      const { pool } = await import("./db/client.js");
+
       const sourceArg = rest.find((a) => a.startsWith("--source="))?.split("=")[1];
       if (sourceArg) {
         if (!SOURCES.includes(sourceArg as Source)) {
@@ -26,22 +25,22 @@ async function main() {
       break;
     }
     case "mcp": {
+      const { startServer } = await import("./mcp-server/server.js");
       await startServer();
       break;
     }
     case "api": {
+      const { startApiServer } = await import("./api/server.js");
       await startApiServer();
       break;
     }
     default:
       logger.error("cli.unknownCommand", { command });
       process.exitCode = 1;
-      await pool.end();
   }
 }
 
-main().catch(async (err) => {
+main().catch((err) => {
   logger.error("cli.fatal", { error: (err as Error).message });
-  await pool.end();
   process.exit(1);
 });

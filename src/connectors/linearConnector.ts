@@ -2,12 +2,15 @@ import { LinearClient } from "@linear/sdk";
 import { env } from "../config/env.js";
 import type { Connector, RawFetchedItem } from "../types.js";
 
-const linear = new LinearClient({ apiKey: env.LINEAR_API_KEY });
+function client(): LinearClient {
+  return new LinearClient({ apiKey: env.LINEAR_API_KEY });
+}
 
 export const linearConnector: Connector = {
   source: "linear",
 
   async fetchSince(cursor) {
+    const linear = client();
     const since = (cursor.since as string) ?? new Date(0).toISOString();
     let newestSeen = since;
 
