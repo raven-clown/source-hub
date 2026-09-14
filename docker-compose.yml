@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: source-hub-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: source_hub
+      POSTGRES_PASSWORD: source_hub
+      POSTGRES_DB: source_hub
+    ports:
+      - "127.0.0.1:5442:5432"
+    volumes:
+      - source_hub_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U source_hub -d source_hub"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  source_hub_pgdata:
