@@ -71,7 +71,10 @@ export interface SeriesFilters extends RangeOpts {
 
 /** Time-bucketed counts, zoomable from year down to second, for line/area/bar trend charts. */
 export async function getSeries(filters: SeriesFilters): Promise<SeriesPoint[]> {
-  const granularity: Granularity = filters.granularity ?? "day";
+  const granularity = filters.granularity ?? "day";
+  if (!GRANULARITIES.includes(granularity)) {
+    throw new Error(`invalid granularity: ${granularity}`);
+  }
   const { clause: rangeClause, params } = rangeFilter(filters);
   const clauses = [rangeClause];
 

@@ -115,7 +115,8 @@ export async function queryItems(filters: ItemFilters): Promise<ItemRow[]> {
   }
 
   const where = clauses.length ? `where ${clauses.join(" and ")}` : "";
-  params.push(filters.limit ?? 100);
+  const limit = Math.min(Math.max(filters.limit ?? 100, 1), 500);
+  params.push(limit);
 
   const { rows } = await pool.query<ItemRow>(
     `select * from items ${where} order by coalesce(event_at, source_created_at) desc limit $${params.length}`,
