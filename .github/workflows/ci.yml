@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: source_hub
+          POSTGRES_PASSWORD: source_hub
+          POSTGRES_DB: source_hub
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U source_hub -d source_hub"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://source_hub:source_hub@localhost:5432/source_hub
+      ANTHROPIC_API_KEY: ci-placeholder
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm run scan:sast
+
+      - run: npm run scan:secrets
+
+      - run: npm run scan:deps
+
+      - run: npm run migrate
