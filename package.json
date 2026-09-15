@@ -34,7 +34,7 @@
     "@types/pg": "^8.11.10",
     "eslint": "^10.10.0",
     "eslint-plugin-security": "^4.0.1",
-    "mcp-stdio-debug": "^1.9.0",
+    "mcp-stdio-debug": "^1.9.2",
     "secretlint": "^13.0.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
