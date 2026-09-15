@@ -16,7 +16,7 @@ function toOpenAiTool(tool: ToolSpec): OpenAI.Chat.ChatCompletionTool {
   };
 }
 
-/** Works with any server implementing the OpenAI chat-completions API: Ollama, vLLM, LM Studio, OpenRouter, Together, Groq, DeepInfra, etc. */
+/** Targets any OpenAI-compatible chat-completions server (Ollama, vLLM, OpenRouter, etc.). */
 export class OpenAiCompatibleProvider implements LlmProvider {
   private client: OpenAI;
   private model: string;

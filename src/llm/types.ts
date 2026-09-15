@@ -11,10 +11,10 @@ export interface ToolSpec {
 }
 
 export interface LlmProvider {
-  /** Force the model to call exactly one tool and return its parsed arguments. */
+  /** Forces exactly one tool call; returns its parsed arguments. */
   extractStructured(opts: { system: string; userContent: string; tool: ToolSpec }): Promise<Record<string, unknown>>;
 
-  /** Run a short agent loop: the model may call `tool` repeatedly (executed via `runTool`) before giving a final text answer. */
+  /** Multi-turn tool loop until the model returns plain text. */
   runAgentLoop(opts: {
     system: string;
     userMessage: string;

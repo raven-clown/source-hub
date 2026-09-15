@@ -69,7 +69,6 @@ export interface SeriesFilters extends RangeOpts {
   splitByCategory?: boolean;
 }
 
-/** Time-bucketed counts, zoomable from year down to second, for line/area/bar trend charts. */
 export async function getSeries(filters: SeriesFilters): Promise<SeriesPoint[]> {
   const granularity = filters.granularity ?? "day";
   if (!GRANULARITIES.includes(granularity)) {
@@ -113,7 +112,6 @@ export interface BreakdownSlice {
   percent: number;
 }
 
-/** Share of items per source/category over a window — pie/donut chart data. */
 export async function getBreakdown(opts: RangeOpts & { by: Dimension }): Promise<BreakdownSlice[]> {
   const column = DIMENSION_COLUMNS[opts.by];
   const { clause, params } = rangeFilter(opts);
@@ -141,7 +139,6 @@ export interface ComparePoint {
   previous: number;
 }
 
-/** Current vs previous period per source/category — paired bar (target-vs-actual style) data. */
 export async function getCompare(opts: RangeOpts & { groupBy: Dimension }): Promise<ComparePoint[]> {
   const column = DIMENSION_COLUMNS[opts.groupBy];
 
@@ -184,7 +181,6 @@ export interface DistributionBucket {
   count: number;
 }
 
-/** Histogram over hour-of-day (when items typically arrive) or AI extraction confidence. */
 export async function getDistribution(
   opts: RangeOpts & { field: "hour_of_day" | "confidence" }
 ): Promise<DistributionBucket[]> {
